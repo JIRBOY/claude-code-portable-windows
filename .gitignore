@@ -19,3 +19,7 @@ desktop.ini
 .DS_Store
 .vscode/
 .idea/
+
+# Locally generated icon and compiled resources (may contain third-party marks)
+assets/src/desktop.ico
+*.res

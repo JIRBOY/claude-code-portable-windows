@@ -11,6 +11,7 @@ if (-not $ToolchainRoot) {
     $ToolchainRoot = Join-Path $env:TEMP 'llvm-mingw-20261104\extracted\llvm-mingw-20261104-ucrt-x86_64'
 }
 $clang = Join-Path $ToolchainRoot 'bin\x86_64-w64-mingw32-clang.exe'
+$windres = Join-Path $ToolchainRoot 'bin\x86_64-w64-mingw32-windres.exe'
 if (-not (Test-Path -LiteralPath $clang -PathType Leaf)) {
     throw "LLVM-MinGW compiler not found: $clang. Run scripts/get-toolchain.ps1 first."
 }
@@ -37,11 +38,13 @@ New-Item -ItemType Directory -Path $runtimeBin -Force | Out-Null
 New-Item -ItemType Directory -Path $mockBin -Force | Out-Null
 
 $scc = Join-Path $Root 'scc.exe'
+$desktop = Join-Path $Root 'desktop.exe'
 $mock = Join-Path $mockBin 'claude.exe'
 $shim = Join-Path $runtimeBin 'tool_shim.exe'
 $shimNames = @('pip.exe', 'pytest.exe', 'playwright.exe', 'markitdown.exe')
 
 Backup-GeneratedFile $scc
+Backup-GeneratedFile $desktop
 Backup-GeneratedFile $mock
 Backup-GeneratedFile $shim
 foreach ($name in $shimNames) { Backup-GeneratedFile (Join-Path $runtimeBin $name) }
@@ -53,6 +56,23 @@ $common = @(
 
 & $clang @common '-o' $scc (Join-Path $src 'scc.c') '-lshell32'
 if ($LASTEXITCODE -ne 0) { throw "scc.c compilation failed: $LASTEXITCODE" }
+
+if (Test-Path -LiteralPath (Join-Path $src 'desktop.c')) {
+    $desktopSources = @((Join-Path $src 'desktop.c'))
+    $desktopRc = Join-Path $src 'desktop.rc'
+    $desktopIco = Join-Path $src 'desktop.ico'
+    if ((Test-Path -LiteralPath $desktopRc) -and (Test-Path -LiteralPath $desktopIco)) {
+        if (-not (Test-Path -LiteralPath $windres -PathType Leaf)) {
+            throw "windres not found: $windres"
+        }
+        $desktopRes = Join-Path $env:TEMP "portable-desktop-$stamp.res"
+        & $windres -I $src $desktopRc -O coff -o $desktopRes
+        if ($LASTEXITCODE -ne 0) { throw "desktop resource compilation failed: $LASTEXITCODE" }
+        $desktopSources += $desktopRes
+    }
+    & $clang @common '-mwindows' '-o' $desktop @desktopSources '-lshell32' '-lws2_32' '-luser32'
+    if ($LASTEXITCODE -ne 0) { throw "desktop.c compilation failed: $LASTEXITCODE" }
+}
 
 if (Test-Path -LiteralPath (Join-Path $src 'mock_claude.c')) {
     & $clang @common '-o' $mock (Join-Path $src 'mock_claude.c') '-lshell32'
@@ -78,6 +98,13 @@ $report = [ordered]@{
         SHA256 = (Get-FileHash -LiteralPath $scc -Algorithm SHA256).Hash
         Bytes = (Get-Item -LiteralPath $scc).Length
     }
+    Desktop = if (Test-Path -LiteralPath $desktop) {
+        [ordered]@{
+            Path = 'desktop.exe'
+            SHA256 = (Get-FileHash -LiteralPath $desktop -Algorithm SHA256).Hash
+            Bytes = (Get-Item -LiteralPath $desktop).Length
+        }
+    } else { $null }
 }
 if (Test-Path -LiteralPath $mock) {
     $report.Mock = [ordered]@{

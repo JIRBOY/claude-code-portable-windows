@@ -80,6 +80,22 @@ stdin 保持打开时，同一进程可以连续多轮对话，上下文保留�
 - Windows 上用 `taskkill /PID <pid> /T /F` 结束 `scc.exe` 及其子进程，避免孤儿进程。
 - 前端不要因为 `error_during_execution` 就清空会话，它表示"被中断"，不是致命错误。
 
+## 桌面启动器
+
+`assets/src/desktop.c` 编译为 GUI 子系统的 `desktop.exe`，负责"双击即用"：
+
+1. 从自身路径推导根目录。
+2. 解析 `--port`、`--port=N`、`--no-open`。
+3. 用 WinSock 连接 `127.0.0.1:<port>` 判断服务是否已运行。
+4. 未运行：`CreateProcessW` 启动 `runtime\node\node.exe gui\server.js`，`CREATE_NO_WINDOW` 隐藏控制台，cwd 设为根目录。
+5. 每 200 ms 轮询端口，最多 15 秒；进程提前退出或超时则弹出 MessageBox。
+6. 就绪后 `ShellExecuteW` 打开默认浏览器。
+7. 已运行：直接打开浏览器，不启动第二个进程。
+
+配套的 `POST /api/shutdown` 先返回 `{ok:true}`，再关闭全部 worker、保存会话并退出，供界面"停止服务"使用。
+
+图标资源：`assets/src/desktop.rc` + `desktop.ico`。`build-launcher.ps1` 仅在两文件都存在时调用 windres；`.gitignore` 排除了 `desktop.ico`，避免把第三方图标标识提交到公开仓库。`scripts/extract-icon.py` 从使用者自己的 `claude.exe` 提取 16–256 的完整尺寸集。
+
 ## 服务端架构
 
 ```text

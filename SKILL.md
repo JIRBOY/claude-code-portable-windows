@@ -125,14 +125,28 @@ powershell -NoProfile -ExecutionPolicy Bypass -File scripts\build-launcher.ps1 -
 
 ## 阶段 6：可选本地 GUI
 
-`assets/gui` 提供一个零构建的本地 Web 界面：Node HTTP + SSE + 常驻 Claude 子进程。
+`assets/gui` 提供一个零构建的本地 Web 界面：Node HTTP + SSE + 常驻 Claude 子进程。`assets/src/desktop.c` 是配套的一键启动器。
 
 ```powershell
+# 放到便携根目录
 copy assets\gui\* <PORTABLE_ROOT>\gui\ /E
+copy assets\src\desktop.c <PORTABLE_ROOT>\src\
+copy assets\src\desktop.rc <PORTABLE_ROOT>\src\
+
 cd <PORTABLE_ROOT>\gui
 <PORTABLE_ROOT>\runtime\node\npm.cmd install --no-audit --no-fund
-start.cmd
+
+# 重新运行构建脚本，会同时产出 desktop.exe
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\build-launcher.ps1 -Root <PORTABLE_ROOT>
 ```
+
+`desktop.exe` 的行为：检测 `127.0.0.1:<port>` 是否已在监听；未监听则以 `CREATE_NO_WINDOW` 启动 `gui\server.js`，等待就绪后打开浏览器；已监听则只打开浏览器。界面左下角"停止服务"调用 `POST /api/shutdown` 结束进程，避免后台残留。
+
+图标：
+
+- `desktop.rc` 引用 `src\desktop.ico`；文件不存在时构建脚本自动跳过资源编译，仍产出无图标 exe。
+- `scripts/extract-icon.py` 可以从**使用者自己的** `claude.exe` 提取全部图标尺寸，需要 `pip install pefile`。
+- Claude 图标属于第三方标识。提取出的 `desktop.ico` 只用于本地构建，**不要提交到公开仓库**；`.gitignore` 已排除。
 
 关键协议与实现坑见 `references/gui-bridge.md`。GUI 默认通过 `scc.exe` 启动，因而继承同样的环境隔离与权限模式。
 

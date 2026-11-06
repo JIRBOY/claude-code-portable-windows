@@ -36,10 +36,14 @@ See `SKILL.md` for the full staged workflow and `references/acceptance-checklist
 
 ```powershell
 copy assets\gui\* <PORTABLE_ROOT>\gui\ /E
+copy assets\src\desktop.c <PORTABLE_ROOT>\src\
+copy assets\src\desktop.rc <PORTABLE_ROOT>\src\
 cd <PORTABLE_ROOT>\gui
 <PORTABLE_ROOT>\runtime\node\npm.cmd install --no-audit --no-fund
-start.cmd
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\build-launcher.ps1 -Root <PORTABLE_ROOT>
 ```
+
+Double-click `desktop.exe` to start the local server hidden and open the browser. Stop it from the GUI's "停止服务" button. The icon is optional: extract it from your own `claude.exe` with `scripts/extract-icon.py`; extracted icon files are ignored by git and not shipped here.
 
 ## License
 

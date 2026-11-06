@@ -562,6 +562,16 @@ async function route(req, res) {
     }
   }
 
+  if (req.method === 'POST' && pathname === '/api/shutdown') {
+    json(res, 200, { ok: true });
+    setTimeout(() => {
+      for (const id of [...workers.keys()]) closeWorker(id);
+      saveSessions();
+      setTimeout(() => process.exit(0), 500);
+    }, 100);
+    return;
+  }
+
   json(res, 404, { error: '未找到' });
 }
 

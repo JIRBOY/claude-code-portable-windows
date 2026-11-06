@@ -683,6 +683,15 @@ document.addEventListener('keydown', e => {
 $('#collapse-sidebar').addEventListener('click', () => sidebarEl.classList.add('collapsed'));
 $('#open-sidebar').addEventListener('click', () => sidebarEl.classList.remove('collapsed'));
 
+$('#shutdown').addEventListener('click', async () => {
+  if (!confirm('停止本地 GUI 服务？已保存的会话不会丢失。')) return;
+  try { await api('/api/shutdown', { method: 'POST' }); } catch {}
+  document.body.innerHTML =
+    '<div class="shutdown-screen"><div class="mark">✳</div>' +
+    '<div>本地服务已停止，可以关闭此页面。</div>' +
+    '<div style="font-size:12px;color:var(--faint)">下次双击 desktop.exe 重新打开</div></div>';
+});
+
 messagesEl.addEventListener('scroll', () => {
   state.autoScroll = messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight < 140;
 });
