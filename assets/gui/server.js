@@ -586,6 +586,9 @@ server.listen(PORT, HOST, () => {
   console.log('  按 Ctrl+C 结束');
   console.log('');
   saveSessions();
+  if (process.env.CC_GUI_OPEN === '1') {
+    execFile('cmd', ['/c', 'start', '', url], { windowsHide: true }, () => {});
+  }
 });
 
 process.on('SIGINT', () => {
