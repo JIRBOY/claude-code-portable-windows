@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Claude Code</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div id="app">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-head">
+        <div class="brand">
+          <span class="brand-mark">✳</span>
+          <span class="brand-name">Claude Code</span>
+        </div>
+        <button class="icon-btn" id="collapse-sidebar" title="收起侧栏">‹</button>
+      </div>
+
+      <button class="new-session" id="new-session">
+        <span class="plus">+</span> 新建会话
+      </button>
+
+      <div class="session-list" id="session-list"></div>
+
+      <div class="sidebar-foot">
+        <span id="connection" class="dot offline" title="连接状态"></span>
+        <span id="connection-text">连接中…</span>
+        <span class="spacer"></span>
+        <span id="worker-count"></span>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <button class="icon-btn only-narrow" id="open-sidebar" title="展开侧栏">☰</button>
+        <div class="title-wrap">
+          <h1 id="session-title">Claude Code</h1>
+          <div class="meta" id="session-meta">选择或新建一个会话</div>
+        </div>
+        <div class="status-pill" id="status-pill" hidden>
+          <span class="dot"></span><span id="status-text">处理中</span>
+        </div>
+      </header>
+
+      <section class="messages" id="messages">
+        <div class="empty" id="empty">
+          <div class="empty-mark">✳</div>
+          <h2>开始一段对话</h2>
+          <p>选择一个工作目录，Claude 会在该目录下读写文件、运行命令。</p>
+          <button class="primary" id="empty-new">新建会话</button>
+        </div>
+      </section>
+
+      <footer class="composer">
+        <div class="composer-box" id="composer-box">
+          <textarea id="input" rows="1" placeholder="给 Claude 发消息…" spellcheck="false"></textarea>
+          <div class="composer-actions">
+            <button class="stop" id="stop" hidden title="停止生成">■</button>
+            <button class="send" id="send" title="发送">↑</button>
+          </div>
+        </div>
+        <div class="hint">
+          <span>Enter 发送 · Shift+Enter 换行</span>
+          <span id="cost-hint"></span>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="modal" hidden>
+    <div class="modal">
+      <h3>新建会话</h3>
+      <label for="cwd-input">工作目录</label>
+      <input id="cwd-input" list="cwd-list" spellcheck="false" autocomplete="off">
+      <datalist id="cwd-list"></datalist>
+      <p class="modal-hint">Claude 将在此目录下工作，并加载该目录的 CLAUDE.md。目录必须已存在。</p>
+      <div class="recent" id="recent-cwds"></div>
+      <div class="modal-actions">
+        <button class="ghost" id="modal-cancel">取消</button>
+        <button class="primary" id="modal-create">创建</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" hidden></div>
+
+  <script src="/vendor/marked.js"></script>
+  <script src="/vendor/purify.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>

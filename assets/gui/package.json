@@ -1,0 +1,12 @@
+{
+  "name": "claude-code-portable-gui",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local web GUI for a portable Claude Code installation",
+  "license": "MIT",
+  "type": "commonjs",
+  "dependencies": {
+    "dompurify": "^3.4.17",
+    "marked": "^18.1.3"
+  }
+}

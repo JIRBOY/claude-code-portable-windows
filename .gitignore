@@ -1,0 +1,21 @@
+# Build artifacts and user data
+node_modules/
+data/
+runtime/
+.snapshots/
+*.exe
+*.dll
+*.log
+
+# Secrets
+.env
+.env.*
+settings.local.json
+*.credentials
+
+# OS / editor
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/
+.idea/
